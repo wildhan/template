@@ -12,6 +12,10 @@ import (
 	userRepository "template/package/user/repository"
 	userUsecase "template/package/user/usecase"
 
+	authHandler "template/package/auth/handler"
+	authRepository "template/package/auth/repository"
+	authUsacase "template/package/auth/usecase"
+
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -37,6 +41,10 @@ func main() {
 	userRepo := userRepository.NewUserRepo(dbConn)
 	userUC := userUsecase.NewUserUsecase(userRepo)
 	userHandler.NewUserHandler(userUC).Mount(e.Group("/user"))
+
+	authRepo := authRepository.NewAuthRepo(dbConn)
+	authUC := authUsacase.NewAuthUsecase(authRepo)
+	authHandler.NewAuthHandler(authUC).Mount(e.Group("/auth"))
 
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {
 		log.Error(fmt.Sprintf("Failed start echo: %v", err.Error()))
