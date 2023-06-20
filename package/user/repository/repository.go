@@ -24,7 +24,7 @@ func (r *userRepo) GetUsers() ([]model.User, error) {
 	users := make([]model.User, 0)
 	db := r.dbConn.DB
 
-	query := `SELECT * FROM public.user_profile;`
+	query := `SELECT id, username, first_name, last_name FROM public.user_profile`
 	err := db.Raw(query).Scan(&users).Error
 
 	return users, err
@@ -41,9 +41,8 @@ func (r *userRepo) AddUser(user model.User) error {
 	query := `INSERT INTO public.user_profile
 	(username, first_name, last_name)
 	VALUES(?, ?, ?);`
-	err := db.Exec(query, params...).Error
 
-	return err
+	return db.Exec(query, params...).Error
 }
 
 func (r *userRepo) EditUser(user model.User) error {
@@ -59,7 +58,6 @@ func (r *userRepo) EditUser(user model.User) error {
 	query := `UPDATE public.user_profile
 	SET username=?, first_name=?, last_name=?
 	WHERE id=?::uuid;`
-	err := db.Exec(query, params...).Error
 
-	return err
+	return db.Exec(query, params...).Error
 }

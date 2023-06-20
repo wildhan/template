@@ -39,3 +39,9 @@ func CreateConnection() *DbConnection {
 	log.Info("DB Connection Success")
 	return &DbConnection{db}
 }
+
+func CreateMockConnection(postConfig postgres.Config) (*DbConnection, error) {
+	db, err := gorm.Open(postgres.New(postConfig), &gorm.Config{})
+
+	return &DbConnection{db}, err
+}
