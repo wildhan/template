@@ -1,8 +1,9 @@
-package repository
+package repository_test
 
 import (
 	"template/config/database"
 	"template/package/user/model"
+	"template/package/user/repository"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -37,7 +38,7 @@ func TestGetUsers(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "username", "first_name", "last_name"}).
 			AddRow(expectedUser.Id, expectedUser.Username, expectedUser.FirstName, expectedUser.LastName))
 
-	UserRepo := NewUserRepo(dbConn)
+	UserRepo := repository.NewUserRepo(dbConn)
 	result, err := UserRepo.GetUsers()
 
 	assert.NoError(t, err)
@@ -63,7 +64,7 @@ func TestAddUser(t *testing.T) {
 		WithArgs(expectedUser.Username, expectedUser.FirstName, expectedUser.LastName).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	UserRepo := NewUserRepo(dbConn)
+	UserRepo := repository.NewUserRepo(dbConn)
 	err = UserRepo.AddUser(expectedUser)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
@@ -87,7 +88,7 @@ func TestEditUser(t *testing.T) {
 		WithArgs(expectedUser.Username, expectedUser.FirstName, expectedUser.LastName, expectedUser.Id).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	UserRepo := NewUserRepo(dbConn)
+	UserRepo := repository.NewUserRepo(dbConn)
 	err = UserRepo.EditUser(expectedUser)
 	assert.NoError(t, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
