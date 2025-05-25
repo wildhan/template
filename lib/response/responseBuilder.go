@@ -44,3 +44,13 @@ func (hc httpContext) BadRequest(msg string) error {
 	log.Info(fmt.Sprintf("response: [%v] %v", http.StatusBadRequest, msg))
 	return hc.builder(http.StatusBadRequest, "Bad Request", nil)
 }
+
+func (hc httpContext) UnprocessableEntity(msg string, data ...interface{}) error {
+	log.Info(fmt.Sprintf("response: [%v] %v", http.StatusUnprocessableEntity, msg))
+	return hc.builder(http.StatusUnprocessableEntity, "Unprocessable Entity", data)
+}
+
+func (hc httpContext) Conflict(msg string, data string) error {
+	log.Info(fmt.Sprintf("response: [%v] %v", http.StatusConflict, msg))
+	return hc.builder(http.StatusConflict, fmt.Sprintf("Conflict: %v", msg), data)
+}
