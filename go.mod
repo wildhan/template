@@ -10,6 +10,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/stretchr/testify v1.8.4
+	golang.org/x/crypto v0.38.0
 	gorm.io/driver/postgres v1.4.6
 	gorm.io/gorm v1.24.2
 )
@@ -33,7 +34,6 @@ require (
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
