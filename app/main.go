@@ -42,8 +42,8 @@ func main() {
 	userUC := userUsecase.NewUserUsecase(userRepo)
 	userHandler.NewUserHandler(userUC).Mount(e.Group("/user"))
 
-	authRepo := authRepository.NewAuthRepo(dbConn)
-	authUC := authUsacase.NewAuthUsecase(authRepo)
+	authRepo := authRepository.NewAuthRepo()
+	authUC := authUsacase.NewAuthUsecase(dbConn, authRepo)
 	authHandler.NewAuthHandler(authUC).Mount(e.Group("/auth"))
 
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {

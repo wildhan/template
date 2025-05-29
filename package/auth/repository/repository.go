@@ -1,25 +1,25 @@
 package repository
 
 import (
-	"template/config/database"
 	"template/lib/helper"
 	"template/package/auth/model"
+
+	"gorm.io/gorm"
 )
 
-type authRepo struct {
-	dbConn *database.DbConnection
-}
+type authRepo struct{}
 
-func NewAuthRepo(dbConn *database.DbConnection) AuthRepo {
-	return &authRepo{dbConn}
+func NewAuthRepo() AuthRepo {
+	return &authRepo{}
 }
 
 type AuthRepo interface {
-	InsertUserAuth(model.UserAuth) error
+	InsertUserAuth(db gorm.DB, user model.UserAuth) (model.UserAuth, error)
+	InsertUserProfile(db gorm.DB, user model.UserAuth) (model.UserAuth, error)
 }
 
-func (r *authRepo) InsertUserAuth(user model.UserAuth) error {
-	db := r.dbConn.DB
+func (r *authRepo) InsertUserAuth(db gorm.DB, user model.UserAuth) (model.UserAuth, error) {
+	var id *string
 	params := make([]interface{}, 0)
 
 	params = append(params, helper.EmptyStringToNull(user.Username))
@@ -28,6 +28,20 @@ func (r *authRepo) InsertUserAuth(user model.UserAuth) error {
 
 	query := `INSERT INTO public.users_auth
 						(username, email, hash_password)
-						VALUES(?, ?, ?);`
-	return db.Exec(query, params...).Error
+						VALUES(?, ?, ?)
+						RETURNING id;`
+	if err := db.Raw(query, params...).Scan(&id).Error; err != nil {
+		return user, err
+	}
+
+	user.Id = *id
+
+	return user, nil
+}
+
+func (r *authRepo) InsertUserProfile(db gorm.DB, user model.UserAuth) (model.UserAuth, error) {
+	query := `INSERT INTO public.users_profile
+						(id)
+						VALUES(?);`
+	return user, db.Exec(query, user.Id).Error
 }
