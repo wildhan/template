@@ -54,3 +54,13 @@ func (hc httpContext) Conflict(msg string, data string) error {
 	log.Info(fmt.Sprintf("response: [%v] %v", http.StatusConflict, msg))
 	return hc.builder(http.StatusConflict, fmt.Sprintf("Conflict: %v", msg), data)
 }
+
+func (hc httpContext) NotFound(msg string) error {
+	log.Info(fmt.Sprintf("response: [%v] %v", http.StatusNotFound, msg))
+	return hc.builder(http.StatusNotFound, `Not Found`, nil)
+}
+
+func (hc httpContext) NotAcceptable(msg string) error {
+	log.Info(fmt.Sprintf("response: [%v] %v", http.StatusNotAcceptable, msg))
+	return hc.builder(http.StatusNotAcceptable, `Not Acceptable`, nil)
+}
