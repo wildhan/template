@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"io"
-	"template/lib/database"
 	"template/lib/log"
 	"template/lib/response"
 	"template/lib/validator"
@@ -23,6 +22,7 @@ func NewAuthHandler(uc usecase.AuthUsecase) *authHandler {
 
 func (h *authHandler) Mount(g *echo.Group) {
 	g.POST("/", h.Registration)
+	g.GET("/", h.Login)
 }
 
 func (h *authHandler) Registration(e echo.Context) error {
@@ -43,12 +43,32 @@ func (h *authHandler) Registration(e echo.Context) error {
 	}
 
 	if err := h.uc.RegistrationUser(user); err != nil {
-		isDbErr, err := database.GetErrorDatabase(e, err)
-		if isDbErr {
-			return err
-		}
-		return response.ToJson(e).InternalServerError(err.Error())
+		return response.GetResponseErorr(e, err)
 	}
 
 	return response.ToJson(e).OK(nil, "Registration Success")
+}
+
+func (h *authHandler) Login(e echo.Context) error {
+	log.Info("Login ...")
+
+	body, err := io.ReadAll(e.Request().Body)
+	if err != nil {
+		return response.ToJson(e).BadRequest("Failed get body")
+	}
+
+	loginParams := model.LoginParameter{}
+	if err = json.Unmarshal(body, &loginParams); err != nil {
+		return response.ToJson(e).BadRequest("Failed unmarshal")
+	}
+
+	if fieldNotFailed := validator.JsonValidator(loginParams); fieldNotFailed != nil {
+		return response.ToJson(e).UnprocessableEntity("Failed Field Validation", fieldNotFailed)
+	}
+
+	if err := h.uc.LoginUser(loginParams); err != nil {
+		return response.GetResponseErorr(e, err)
+	}
+
+	return response.ToJson(e).OK(nil, "Login Success")
 }
