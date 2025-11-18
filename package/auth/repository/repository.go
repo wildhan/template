@@ -15,7 +15,7 @@ func NewAuthRepo() AuthRepo {
 
 type AuthRepo interface {
 	InsertUserAuth(db gorm.DB, user model.UserAuth) (model.UserAuth, error)
-	InsertUserProfile(db gorm.DB, user model.UserAuth) (model.UserAuth, error)
+	InsertUserProfile(db gorm.DB, user model.UserProfile) (model.UserProfile, error)
 	ReadUserAuth(db gorm.DB, username string) (*model.UserAuth, error)
 }
 
@@ -40,11 +40,11 @@ func (r *authRepo) InsertUserAuth(db gorm.DB, user model.UserAuth) (model.UserAu
 	return user, nil
 }
 
-func (r *authRepo) InsertUserProfile(db gorm.DB, user model.UserAuth) (model.UserAuth, error) {
+func (r *authRepo) InsertUserProfile(db gorm.DB, user model.UserProfile) (model.UserProfile, error) {
 	query := `INSERT INTO public.users_profile
-						(id)
-						VALUES(?);`
-	return user, db.Exec(query, user.Id).Error
+						(id, first_name, last_name, birthday, address, phone, created_at, created_by_user, created_by_role)
+						VALUES(?, ?, ?, ?, ?, ?, NOW(), ?, ?);`
+	return user, db.Exec(query, user.Id, user.FirstName, user.LastName, user.Brithday, user.Address, user.Phone, user.CreatedByUser, user.CreatedByRole).Error
 }
 
 func (r *authRepo) ReadUserAuth(db gorm.DB, username string) (userAuth *model.UserAuth, err error) {

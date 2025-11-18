@@ -42,7 +42,12 @@ func (uc *authUsecase) RegistrationUser(user model.UserAuth) error {
 		return err
 	}
 
-	if _, err := uc.repo.InsertUserProfile(*tx, user); err != nil {
+	userProfile := model.UserProfile{
+		Id:            user.Id,
+		CreatedByUser: &user.Id,
+	}
+
+	if _, err := uc.repo.InsertUserProfile(*tx, userProfile); err != nil {
 		return err
 	}
 
