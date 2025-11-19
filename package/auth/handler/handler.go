@@ -66,9 +66,10 @@ func (h *authHandler) Login(e echo.Context) error {
 		return response.ToJson(e).UnprocessableEntity("Failed Field Validation", fieldNotFailed)
 	}
 
-	if err := h.uc.LoginUser(loginParams); err != nil {
+	resp, err := h.uc.LoginUser(loginParams)
+	if err != nil {
 		return response.GetResponseErorr(e, err)
 	}
 
-	return response.ToJson(e).OK(nil, "Login Success")
+	return response.ToJson(e).OK(resp, "Login Success")
 }

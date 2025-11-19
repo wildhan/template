@@ -5,6 +5,7 @@ import (
 	"template/config/database"
 	"template/lib/helper"
 	"template/lib/response"
+	"template/lib/token"
 	"template/package/auth/model"
 	"template/package/auth/repository"
 )
@@ -23,7 +24,7 @@ func NewAuthUsecase(dbConn *database.DbConnection, repo repository.AuthRepo) Aut
 
 type AuthUsecase interface {
 	RegistrationUser(user model.UserAuth) error
-	LoginUser(loginParams model.LoginParameter) error
+	LoginUser(loginParams model.LoginParameter) (*model.LoginResponse, error)
 }
 
 func (uc *authUsecase) RegistrationUser(user model.UserAuth) error {
@@ -58,24 +59,31 @@ func (uc *authUsecase) RegistrationUser(user model.UserAuth) error {
 	return nil
 }
 
-func (uc *authUsecase) LoginUser(loginParams model.LoginParameter) error {
+func (uc *authUsecase) LoginUser(loginParams model.LoginParameter) (*model.LoginResponse, error) {
 	tx := uc.dbConn.DB.Begin()
 
 	defer tx.Rollback()
 
 	user, err := uc.repo.ReadUserAuth(*tx, loginParams.Email)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if user == nil {
-		return errors.New(response.ERROR_AUTH_USER_NOT_FOUND)
+		return nil, errors.New(response.ERROR_AUTH_USER_NOT_FOUND)
 	}
 
 	isPassMatch := helper.CheckPasswordHash(loginParams.Password, user.HashPassword)
 	if !isPassMatch {
-		return errors.New(response.ERROR_AUTH_PASS_NOT_MATCH)
+		return nil, errors.New(response.ERROR_AUTH_PASS_NOT_MATCH)
 	}
 
-	return nil
+	token, err := token.GenerateToken(user.Id)
+
+	resp := model.LoginResponse{
+		Username: user.Username,
+		Token:    token,
+	}
+
+	return &resp, nil
 }

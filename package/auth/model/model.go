@@ -30,3 +30,8 @@ type LoginParameter struct {
 	Email    string `json:"email"    gorm:"column:email"         validate:"required,email"`
 	Password string `json:"password" gorm:"column:password"      validate:"required"`
 }
+
+type LoginResponse struct {
+	Username string `json:"username"`
+	Token    string `json:"token"`
+}
