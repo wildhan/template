@@ -8,16 +8,19 @@ import (
 	"template/lib/token"
 	"template/package/auth/model"
 	"template/package/auth/repository"
+	"time"
 )
 
 type authUsecase struct {
 	dbConn *database.DbConnection
+	tMaker *token.PasetoMaker
 	repo   repository.AuthRepo
 }
 
-func NewAuthUsecase(dbConn *database.DbConnection, repo repository.AuthRepo) AuthUsecase {
+func NewAuthUsecase(dbConn *database.DbConnection, tm *token.PasetoMaker, repo repository.AuthRepo) AuthUsecase {
 	return &authUsecase{
 		dbConn: dbConn,
+		tMaker: tm,
 		repo:   repo,
 	}
 }
@@ -78,7 +81,10 @@ func (uc *authUsecase) LoginUser(loginParams model.LoginParameter) (*model.Login
 		return nil, errors.New(response.ERROR_AUTH_PASS_NOT_MATCH)
 	}
 
-	token, err := token.GenerateToken(user.Id)
+	token, err := uc.tMaker.GenerateToken(user.Id, 15*time.Minute)
+	if err != nil {
+		return nil, err
+	}
 
 	resp := model.LoginResponse{
 		Username: user.Username,
