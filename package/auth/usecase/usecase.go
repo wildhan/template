@@ -81,7 +81,7 @@ func (uc *authUsecase) LoginUser(loginParams model.LoginParameter) (*model.Login
 		return nil, errors.New(response.ERROR_AUTH_PASS_NOT_MATCH)
 	}
 
-	token, err := uc.tMaker.GenerateToken(user.Id, 15*time.Minute)
+	token, err := uc.tMaker.GenerateToken(user.Id, 1*time.Minute)
 	if err != nil {
 		return nil, err
 	}

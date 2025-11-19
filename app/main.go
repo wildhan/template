@@ -45,6 +45,11 @@ func main() {
 		os.Exit(2)
 	}
 
+	e.GET("/token-test", func(c echo.Context) error {
+		id := c.Get("id")
+		return c.HTML(http.StatusOK, "token valid for user id: "+id.(string))
+	}, token.AuthMiddleware(tokenMaker))
+
 	userRepo := userRepository.NewUserRepo(dbConn)
 	userUC := userUsecase.NewUserUsecase(userRepo)
 	userHandler.NewUserHandler(userUC).Mount(e.Group("/user"))

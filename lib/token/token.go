@@ -46,3 +46,15 @@ func (m *PasetoMaker) GenerateToken(userId string, duration time.Duration) (stri
 
 	return sendingToken[2], nil
 }
+
+func (m *PasetoMaker) DecryptToken(tokenString string) (*paseto.Token, error) {
+	parser := paseto.NewParser()
+
+	token := fmt.Sprintf("v4.public.%s", tokenString)
+	parsed, err := parser.ParseV4Public(m.publicKey, token, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse token: %w", err)
+	}
+
+	return parsed, nil
+}
