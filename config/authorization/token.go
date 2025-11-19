@@ -1,8 +1,9 @@
-package token
+package authorization
 
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -14,8 +15,9 @@ type PasetoMaker struct {
 	publicKey paseto.V4AsymmetricPublicKey
 }
 
-func NewPasetoMaker(secretKey string) (*PasetoMaker, error) {
+func NewPasetoMaker() (*PasetoMaker, error) {
 
+	secretKey := os.Getenv("SECRET_KEY_64_BYTES")
 	raw, err := base64.StdEncoding.DecodeString(secretKey)
 	if err != nil {
 		return nil, fmt.Errorf("invalid secret key encoding: %w", err)
@@ -34,11 +36,16 @@ func NewPasetoMaker(secretKey string) (*PasetoMaker, error) {
 	}, nil
 }
 
-func (m *PasetoMaker) GenerateToken(userId string, duration time.Duration) (string, error) {
+func (m *PasetoMaker) GenerateToken(userId string) (string, error) {
+	durationMinutes := os.Getenv("TOKEN_EXPIRED_MINUTES")
+	minutes, err := time.ParseDuration(durationMinutes + "m")
+	if err != nil {
+		return "", fmt.Errorf("invalid token duration: %w", err)
+	}
 	token := paseto.NewToken()
 	token.SetSubject(userId)
 	token.SetIssuedAt(time.Now())
-	token.SetExpiration(time.Now().Add(duration))
+	token.SetExpiration(time.Now().Add(minutes))
 
 	signedToken := token.V4Sign(m.secretKey, nil)
 

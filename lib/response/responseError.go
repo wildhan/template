@@ -10,8 +10,8 @@ import (
 const (
 	ERROR_DB_NOT_NULL         = "23502"
 	ERROR_DB_DUPLICATE        = "23505"
-	ERROR_AUTH_USER_NOT_FOUND = "User Not Found"
-	ERROR_AUTH_PASS_NOT_MATCH = "Password Not Match"
+	ERROR_AUTH_USER_NOT_FOUND = "USER_NOT_FOUND"
+	ERROR_AUTH_PASS_NOT_MATCH = "PASSWORD_NOT_MATCH"
 )
 
 var errorMessages = map[string]func(e echo.Context, err error) error{

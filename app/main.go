@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
+	"template/config/authorization"
 	"template/config/database"
 	"template/lib/log"
-	"template/lib/token"
 
 	userHandler "template/package/user/handler"
 	userRepository "template/package/user/repository"
@@ -39,7 +39,7 @@ func main() {
 		return c.HTML(http.StatusOK, "Hello, Template")
 	})
 
-	tokenMaker, err := token.NewPasetoMaker(os.Getenv("SECRET_KEY_64_BYTES"))
+	tokenMaker, err := authorization.NewPasetoMaker()
 	if err != nil {
 		log.Error(fmt.Sprintf("Failed create token maker: %v\n", err.Error()))
 		os.Exit(2)
@@ -48,7 +48,7 @@ func main() {
 	e.GET("/token-test", func(c echo.Context) error {
 		id := c.Get("id")
 		return c.HTML(http.StatusOK, "token valid for user id: "+id.(string))
-	}, token.AuthMiddleware(tokenMaker))
+	}, authorization.AuthMiddleware(tokenMaker))
 
 	userRepo := userRepository.NewUserRepo(dbConn)
 	userUC := userUsecase.NewUserUsecase(userRepo)

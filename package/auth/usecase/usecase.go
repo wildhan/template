@@ -2,22 +2,25 @@ package usecase
 
 import (
 	"errors"
+	"template/config/authorization"
 	"template/config/database"
 	"template/lib/helper"
 	"template/lib/response"
-	"template/lib/token"
 	"template/package/auth/model"
 	"template/package/auth/repository"
-	"time"
 )
 
 type authUsecase struct {
 	dbConn *database.DbConnection
-	tMaker *token.PasetoMaker
+	tMaker *authorization.PasetoMaker
 	repo   repository.AuthRepo
 }
 
-func NewAuthUsecase(dbConn *database.DbConnection, tm *token.PasetoMaker, repo repository.AuthRepo) AuthUsecase {
+func NewAuthUsecase(
+	dbConn *database.DbConnection,
+	tm *authorization.PasetoMaker,
+	repo repository.AuthRepo,
+) AuthUsecase {
 	return &authUsecase{
 		dbConn: dbConn,
 		tMaker: tm,
@@ -81,7 +84,7 @@ func (uc *authUsecase) LoginUser(loginParams model.LoginParameter) (*model.Login
 		return nil, errors.New(response.ERROR_AUTH_PASS_NOT_MATCH)
 	}
 
-	token, err := uc.tMaker.GenerateToken(user.Id, 1*time.Minute)
+	token, err := uc.tMaker.GenerateToken(user.Id)
 	if err != nil {
 		return nil, err
 	}
