@@ -3,12 +3,26 @@ package authorization
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/labstack/echo/v4"
 )
 
-func AuthMiddleware(maker *PasetoMaker) echo.MiddlewareFunc {
+type TokenContainer struct {
+	Sender string
+}
+
+type RefreshTokenContainer struct {
+	TC TokenContainer
+}
+
+type AuthToken interface {
+	GenerateToken(tc TokenContainer) (string, error)
+	ValidateToken(tokenString string) (*TokenContainer, error)
+	GenerateRefreshToken(rtc RefreshTokenContainer) (string, error)
+	ValidateRefreshToken(rtString string) (*RefreshTokenContainer, error)
+}
+
+func AuthMiddleware(authToken AuthToken) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			authHeader := c.Request().Header.Get("Authorization")
@@ -21,26 +35,12 @@ func AuthMiddleware(maker *PasetoMaker) echo.MiddlewareFunc {
 				return c.JSON(http.StatusUnauthorized, echo.Map{"error": "invalid token format"})
 			}
 
-			payload, err := maker.DecryptToken(parts[1])
+			payload, err := authToken.ValidateToken(parts[1])
 			if err != nil {
 				return c.JSON(http.StatusUnauthorized, echo.Map{"error": err.Error()})
 			}
 
-			expiredAt, err := payload.GetExpiration()
-			if err != nil {
-				return c.JSON(http.StatusUnauthorized, echo.Map{"error": "invalid token expiration"})
-			}
-
-			if expiredAt.Before(time.Now()) {
-				return c.JSON(http.StatusUnauthorized, echo.Map{"error": "token has expired"})
-			}
-
-			sub, err := payload.GetSubject()
-			if err != nil {
-				return c.JSON(http.StatusUnauthorized, echo.Map{"error": "invalid token subject"})
-			}
-
-			c.Set("id", sub)
+			c.Set("id", payload.Sender)
 			return next(c)
 		}
 	}

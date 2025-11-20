@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"template/config/authorization"
+	"template/config/authorization/paseto"
 	"template/config/database"
 	"template/lib/log"
 
@@ -39,7 +40,7 @@ func main() {
 		return c.HTML(http.StatusOK, "Hello, Template")
 	})
 
-	tokenMaker, err := authorization.NewPasetoMaker()
+	authToken, err := paseto.NewPasetoImpl()
 	if err != nil {
 		log.Error(fmt.Sprintf("Failed create token maker: %v\n", err.Error()))
 		os.Exit(2)
@@ -48,14 +49,14 @@ func main() {
 	e.GET("/token-test", func(c echo.Context) error {
 		id := c.Get("id")
 		return c.HTML(http.StatusOK, "token valid for user id: "+id.(string))
-	}, authorization.AuthMiddleware(tokenMaker))
+	}, authorization.AuthMiddleware(authToken))
 
 	userRepo := userRepository.NewUserRepo(dbConn)
 	userUC := userUsecase.NewUserUsecase(userRepo)
 	userHandler.NewUserHandler(userUC).Mount(e.Group("/user"))
 
 	authRepo := authRepository.NewAuthRepo()
-	authUC := authUsacase.NewAuthUsecase(dbConn, tokenMaker, authRepo)
+	authUC := authUsacase.NewAuthUsecase(dbConn, authToken, authRepo)
 	authHandler.NewAuthHandler(authUC).Mount(e.Group("/auth"))
 
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {

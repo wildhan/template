@@ -11,20 +11,20 @@ import (
 )
 
 type authUsecase struct {
-	dbConn *database.DbConnection
-	tMaker *authorization.PasetoMaker
-	repo   repository.AuthRepo
+	dbConn    *database.DbConnection
+	authToken authorization.AuthToken
+	repo      repository.AuthRepo
 }
 
 func NewAuthUsecase(
 	dbConn *database.DbConnection,
-	tm *authorization.PasetoMaker,
+	authToken authorization.AuthToken,
 	repo repository.AuthRepo,
 ) AuthUsecase {
 	return &authUsecase{
-		dbConn: dbConn,
-		tMaker: tm,
-		repo:   repo,
+		dbConn:    dbConn,
+		authToken: authToken,
+		repo:      repo,
 	}
 }
 
@@ -84,7 +84,9 @@ func (uc *authUsecase) LoginUser(loginParams model.LoginParameter) (*model.Login
 		return nil, errors.New(response.ERROR_AUTH_PASS_NOT_MATCH)
 	}
 
-	token, err := uc.tMaker.GenerateToken(user.Id)
+	token, err := uc.authToken.GenerateToken(authorization.TokenContainer{
+		Sender: user.Id,
+	})
 	if err != nil {
 		return nil, err
 	}
