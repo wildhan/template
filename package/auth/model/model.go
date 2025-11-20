@@ -32,6 +32,7 @@ type LoginParameter struct {
 }
 
 type LoginResponse struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
+	Username     string `json:"username"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
 }

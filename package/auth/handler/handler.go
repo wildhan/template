@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"io"
+	"strings"
 	"template/lib/log"
 	"template/lib/response"
 	"template/lib/validator"
@@ -23,6 +24,7 @@ func NewAuthHandler(uc usecase.AuthUsecase) *authHandler {
 func (h *authHandler) Mount(g *echo.Group) {
 	g.POST("/", h.Registration)
 	g.GET("/", h.Login)
+	g.GET("/refresh-token", h.RefreshToken)
 }
 
 func (h *authHandler) Registration(e echo.Context) error {
@@ -72,4 +74,24 @@ func (h *authHandler) Login(e echo.Context) error {
 	}
 
 	return response.ToJson(e).OK(resp, "Login Success")
+}
+
+func (h *authHandler) RefreshToken(e echo.Context) error {
+	log.Info("Refresh Token ...")
+
+	authHeader := e.Request().Header.Get("Authorization")
+	if authHeader == "" {
+		return response.ToJson(e).BadRequest("authorization header is missing")
+	}
+
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return response.ToJson(e).BadRequest("invalid token format")
+	}
+
+	resp, err := h.uc.RefreshToken(parts[1])
+	if err != nil {
+		return response.ToJson(e).NotAcceptable("refresh token not acceptable: " + err.Error())
+	}
+	return response.ToJson(e).OK(resp, "Refresh Token Success")
 }

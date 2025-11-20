@@ -31,6 +31,7 @@ func NewAuthUsecase(
 type AuthUsecase interface {
 	RegistrationUser(user model.UserAuth) error
 	LoginUser(loginParams model.LoginParameter) (*model.LoginResponse, error)
+	RefreshToken(refreshToken string) (*model.LoginResponse, error)
 }
 
 func (uc *authUsecase) RegistrationUser(user model.UserAuth) error {
@@ -84,16 +85,58 @@ func (uc *authUsecase) LoginUser(loginParams model.LoginParameter) (*model.Login
 		return nil, errors.New(response.ERROR_AUTH_PASS_NOT_MATCH)
 	}
 
-	token, err := uc.authToken.GenerateToken(authorization.TokenContainer{
+	tc := authorization.TokenContainer{
 		Sender: user.Id,
+	}
+
+	token, err := uc.authToken.GenerateToken(tc)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := uc.authToken.GenerateRefreshToken(authorization.RefreshTokenContainer{
+		TC:    tc,
+		Email: loginParams.Email,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	resp := model.LoginResponse{
-		Username: user.Username,
-		Token:    token,
+		Username:     user.Username,
+		Token:        token,
+		RefreshToken: refreshToken,
+	}
+
+	return &resp, nil
+}
+
+func (uc *authUsecase) RefreshToken(refreshToken string) (*model.LoginResponse, error) {
+	tx := uc.dbConn.DB
+
+	rtc, err := uc.authToken.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := uc.repo.ReadUserAuth(*tx, rtc.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	newToken, err := uc.authToken.GenerateToken(rtc.TC)
+	if err != nil {
+		return nil, err
+	}
+
+	newRefreshToken, err := uc.authToken.GenerateRefreshToken(*rtc)
+	if err != nil {
+		return nil, err
+	}
+	resp := model.LoginResponse{
+		Username:     user.Username,
+		Token:        newToken,
+		RefreshToken: newRefreshToken,
 	}
 
 	return &resp, nil

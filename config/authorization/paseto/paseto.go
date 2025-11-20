@@ -31,10 +31,21 @@ func NewPasetoImpl() (authorization.AuthToken, error) {
 	pk := sk.Public()
 	fmt.Printf("Public Key: %s", base64.StdEncoding.EncodeToString(pk.ExportBytes()))
 
+	symmByte := os.Getenv("SYMMETRIC_KEY_32_BYTES")
+	skRaw, err := base64.StdEncoding.DecodeString(symmByte)
+	if err != nil {
+		return nil, fmt.Errorf("invalid symmetric key encoding: %w", err)
+	}
+
+	syKey, err := paseto.V4SymmetricKeyFromBytes(skRaw)
+	if err != nil {
+		return nil, fmt.Errorf("invalid symmetric key size: %w", err)
+	}
+
 	return &PasetoImpl{
 		secretKey:    &sk,
 		publicKey:    &pk,
-		symmetricKey: nil,
+		symmetricKey: &syKey,
 	}, nil
 }
 
@@ -87,9 +98,55 @@ func (p *PasetoImpl) ValidateToken(tokenString string) (*authorization.TokenCont
 }
 
 func (p *PasetoImpl) GenerateRefreshToken(rtc authorization.RefreshTokenContainer) (string, error) {
-	return "", nil
+	durationHours := os.Getenv("REFRESH_TOKEN_EXPIRED_HOURS")
+	hours, err := time.ParseDuration(durationHours + "h")
+	if err != nil {
+		return "", fmt.Errorf("invalid token duration: %w", err)
+	}
+	token := paseto.NewToken()
+	token.SetSubject(rtc.TC.Sender)
+	token.SetString("email", rtc.Email)
+	token.SetIssuedAt(time.Now())
+	token.SetExpiration(time.Now().Add(hours))
+
+	signedToken := token.V4Encrypt(*p.symmetricKey, nil)
+
+	sendingToken := strings.Split(signedToken, ".")
+
+	return sendingToken[2], nil
 }
 
 func (p *PasetoImpl) ValidateRefreshToken(rtString string) (*authorization.RefreshTokenContainer, error) {
-	return nil, nil
+	token := fmt.Sprintf("v4.local.%s", rtString)
+	parser := paseto.NewParser()
+	parsed, err := parser.ParseV4Local(*p.symmetricKey, token, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse token: %w", err)
+	}
+	// Check Expiration Time
+	expiredAt, err := parsed.GetExpiration()
+	if err != nil {
+		return nil, fmt.Errorf("invalid token expiration: %w", err)
+	}
+
+	if expiredAt.Before(time.Now()) {
+		return nil, fmt.Errorf("token has expired")
+	}
+
+	sub, err := parsed.GetSubject()
+	if err != nil {
+		return nil, fmt.Errorf("invalid token subject: %w", err)
+	}
+
+	email, err := parsed.GetString("email")
+	if err != nil {
+		return nil, fmt.Errorf("invalid token email: %w", err)
+	}
+	rtc := &authorization.RefreshTokenContainer{
+		TC: authorization.TokenContainer{
+			Sender: sub,
+		},
+		Email: email,
+	}
+	return rtc, nil
 }

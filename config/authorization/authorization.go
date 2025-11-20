@@ -12,7 +12,8 @@ type TokenContainer struct {
 }
 
 type RefreshTokenContainer struct {
-	TC TokenContainer
+	TC    TokenContainer
+	Email string
 }
 
 type AuthToken interface {
