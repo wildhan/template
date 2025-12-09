@@ -1,3 +1,7 @@
+aidanwoods.dev/go-paseto v1.5.4 h1:MH+SBroZEk5Q5pjhVh4l48HIbrdWhWI3SZmA/DXhnuw=
+aidanwoods.dev/go-paseto v1.5.4/go.mod h1:Rn37AIcqrvSMu0YPw65CrlEUuoyKL6Yw6B0htrGr3EU=
+aidanwoods.dev/go-result v0.3.1 h1:ee98hpohYUVYbI+pa6gUHTyoRerIudgjky/IPSowDXQ=
+aidanwoods.dev/go-result v0.3.1/go.mod h1:GKnFg8p/BKulVD3wsfULiPhpPmrTWyiTIbz8EWuUqSk=
 github.com/DATA-DOG/go-sqlmock v1.5.0 h1:Shsta01QNfFxHCfpW6YH2STWB0MudeXXEWMr20OEh60=
 github.com/DATA-DOG/go-sqlmock v1.5.0/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=

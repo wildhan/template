@@ -21,10 +21,8 @@ var listFunc = map[string]func(fl validator.FieldLevel) bool{
 
 func JsonValidator(s interface{}, addFunction ...string) *[]FieldNotValid {
 	validation := validator.New()
-	if addFunction != nil {
-		for _, key := range addFunction {
-			validation.RegisterValidation(key, listFunc[key])
-		}
+	for _, key := range addFunction {
+		validation.RegisterValidation(key, listFunc[key])
 	}
 	if err := validation.Struct(s); err != nil {
 		fieldNotFailed := make([]FieldNotValid, 0)
